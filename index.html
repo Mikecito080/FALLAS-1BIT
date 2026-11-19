@@ -37,13 +37,19 @@ button,select,input,textarea{font:inherit;color:inherit}
 .fld{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 10px;width:100%;min-width:0}
 .fld:focus{outline:2px solid var(--acc);outline-offset:-1px}
 .bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin:6px 0 8px;color:var(--mut);font-size:13px}
+.hscroll{position:sticky;top:0;z-index:30;display:none;overflow-x:auto;overflow-y:hidden;height:13px;margin:0 0 6px;background:var(--card);border:1px solid var(--line);border-radius:999px;scrollbar-width:thin}
+.hscroll div{height:1px}
+.hscroll.on{display:block}
 .tw{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh)}
 table{border-collapse:collapse;width:100%;min-width:1100px}
+@media (max-width:1100px){table{min-width:900px}.hscroll{top:4px}}
 th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 th{position:sticky;top:0;background:var(--card);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);cursor:pointer;white-space:nowrap;user-select:none}
 th.n,td.n{text-align:right;font-variant-numeric:tabular-nums}
 tr:last-child td{border-bottom:0}
 tbody tr:hover{background:color-mix(in srgb,var(--acc2) 45%,transparent)}
+.tw table thead th:nth-child(13),.tw table tbody td:nth-child(13){position:sticky;right:0;z-index:4;background:var(--card);box-shadow:-6px 0 10px -8px rgba(0,0,0,.35)}
+.tw table thead th:nth-child(13){z-index:6}
 .pn{font-weight:600}.cd{color:var(--mut);font-size:12px}
 .pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap}
 .ap{background:var(--grn2);color:var(--grn)}.re{background:var(--red2);color:var(--red)}
@@ -107,10 +113,12 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
 <div id="vDet">
   <div class="bar"><span id="cnt"></span><span class="pg"><button class="btn" id="pPrev">←</button><span id="pInfo"></span><button class="btn" id="pNext">→</button></span></div>
+  <div class="hscroll" id="hscrollDet" aria-label="Desplazamiento horizontal de la tabla"><div></div></div>
   <div class="tw"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
 </div>
 <div id="vSuc" hidden>
   <div class="bar"><span>Haz clic en una sucursal para ver su detalle.</span></div>
+  <div class="hscroll" id="hscrollSuc" aria-label="Desplazamiento horizontal de la tabla"><div></div></div>
   <div class="tw"><table style="min-width:640px"><thead><tr><th>Sucursal</th><th class="n">Líneas</th><th class="n">Folios</th><th class="n">Rechazadas</th><th class="n">Faltante (−)</th><th class="n">Sobrante (+)</th></tr></thead><tbody id="sbody"></tbody></table></div>
 </div>
 </div>
@@ -241,6 +249,7 @@ function render() {
     const arr = Object.values(m).sort((a, b) => b.falt - a.falt), mx = Math.max(1, ...arr.map(a => a.falt));
     $('#sbody').innerHTML = arr.map(a => `<tr class="clk" data-s="${a.suc}"><td>${esc(sucName(a.suc))}</td><td class="n">${a.n}</td><td class="n">${a.f.size}</td><td class="n">${a.rech}</td><td class="n neg" style="min-width:150px">${a.falt}<span class="mini" style="width:${Math.round(a.falt / mx * 100)}%"></span></td><td class="n pos">${a.sobr}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Sin datos.</td></tr>';
   }
+  requestAnimationFrame(syncActiveTableScroll);
 }
 
 function fillSuc() {
@@ -258,12 +267,43 @@ function toast(t) { const e = $('#toast'); e.textContent = t; e.classList.add('o
 function refresh(resetPage) { if (resetPage) V.page = 0; render(); }
 
 // eventos
+function syncHorizontalScroll(viewId, hscrollId) {
+  const view = document.getElementById(viewId);
+  if (!view) return;
+  const tw = view.querySelector('.tw');
+  const hscroll = document.getElementById(hscrollId);
+  if (!tw || !hscroll) return;
+  const inner = hscroll.firstElementChild;
+  inner.style.width = tw.scrollWidth + 'px';
+  hscroll.classList.toggle('on', tw.scrollWidth > tw.clientWidth);
+  if (tw._hscrollBound) return;
+  tw._hscrollBound = true;
+  let syncing = false;
+  tw.addEventListener('scroll', () => {
+    if (syncing) return;
+    syncing = true;
+    hscroll.scrollLeft = tw.scrollLeft;
+    syncing = false;
+  });
+  hscroll.addEventListener('scroll', () => {
+    if (syncing) return;
+    syncing = true;
+    tw.scrollLeft = hscroll.scrollLeft;
+    syncing = false;
+  });
+}
+function syncActiveTableScroll() {
+  if (V.tab === 'det') syncHorizontalScroll('vDet', 'hscrollDet');
+  else syncHorizontalScroll('vSuc', 'hscrollSuc');
+}
+
 ['q', 'fSuc', 'fItem', 'fGes', 'fCom', 'fTipo', 'fD', 'fH'].forEach(id => $('#' + id).addEventListener(id === 'q' ? 'input' : 'change', () => refresh(true)));
 $('#bClr').onclick = () => { ['q', 'fSuc', 'fItem', 'fGes', 'fCom', 'fTipo', 'fD', 'fH'].forEach(id => $('#' + id).value = ''); refresh(true); };
 document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
   V.tab = b.dataset.t; document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b));
   $('#vDet').hidden = V.tab !== 'det'; $('#vSuc').hidden = V.tab !== 'suc'; render();
 });
+addEventListener('resize', syncActiveTableScroll);
 $('#pPrev').onclick = () => { V.page--; render(); };
 $('#pNext').onclick = () => { V.page++; render(); };
 $('#thead').onclick = e => { const th = e.target.closest('th[data-k]'); if (!th) return; const k = th.dataset.k; if (k === 'ges') return; V.sd = V.sk === k ? -V.sd : 1; V.sk = k; render(); };
