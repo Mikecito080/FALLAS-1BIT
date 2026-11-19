@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fallas de almacén · 1Bit</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--ink:#16202b;--mut:#66727f;--line:#e3e7ec;--acc:#0f6e56;--acc2:#e1f5ee;--red:#b4231a;--red2:#fdeceb;--amb:#8a5a00;--amb2:#fff3d6;--blu:#1a56a6;--blu2:#e4eefb;--grn:#1d7a3a;--grn2:#e3f5e8;--sh:0 1px 2px rgba(20,30,40,.06);color-scheme:light;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10151a;--card:#182028;--ink:#e8edf2;--mut:#93a1ae;--line:#27323d;--acc:#4fd1a5;--acc2:#123a2f;--red:#ff8a80;--red2:#3a1a18;--amb:#f2c35b;--amb2:#3a2d0f;--blu:#7db1f5;--blu2:#14283f;--grn:#6fd68c;--grn2:#143321;--sh:none;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10151a;--card:#182028;--ink:#e8edf2;--mut:#93a1ae;--line:#27323d;--acc:#4fd1a5;--acc2:#123a2f;--red:#ff8a80;--red2:#3a1a18;--amb:#f2c35b;--amb2:#3a2d0f;--blu:#7db1f5;--blu2:#14283f;--grn:#6fd68c;--grn2:#143321;--sh:none;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
+h1{font-size:22px;margin:0;letter-spacing:-.01em}
+.sub{color:var(--mut);font-size:13px;margin-top:2px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+button,select,input,textarea{font:inherit;color:inherit}
+.btn{border:1px solid var(--line);background:var(--card);padding:8px 12px;border-radius:8px;cursor:pointer;box-shadow:var(--sh)}
+.btn:hover{border-color:var(--acc)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+:root[data-theme="dark"] .btn.pri,.dk .btn.pri{color:#06241b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.pri{color:#06241b}}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--sh)}
+.kpi b{display:block;font-size:24px;letter-spacing:-.02em;line-height:1.2}
+.kpi span{color:var(--mut);font-size:12px}
+.kpi.r b{color:var(--red)}.kpi.g b{color:var(--grn)}
+.tabs{display:flex;gap:4px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:8px 14px;cursor:pointer;color:var(--mut);font-weight:600}
+.tab.on{color:var(--acc);border-color:var(--acc)}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px}
+.filters .q{grid-column:span 2}
+@media (max-width:560px){.filters .q{grid-column:span 1}}
+.fld{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 10px;width:100%;min-width:0}
+.fld:focus{outline:2px solid var(--acc);outline-offset:-1px}
+.bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin:6px 0 8px;color:var(--mut);font-size:13px}
+.tw{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh)}
+table{border-collapse:collapse;width:100%;min-width:1100px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{position:sticky;top:0;background:var(--card);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);cursor:pointer;white-space:nowrap;user-select:none}
+th.n,td.n{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:color-mix(in srgb,var(--acc2) 45%,transparent)}
+.pn{font-weight:600}.cd{color:var(--mut);font-size:12px}
+.pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap}
+.ap{background:var(--grn2);color:var(--grn)}.re{background:var(--red2);color:var(--red)}
+.neg{color:var(--red);font-weight:600}.pos{color:var(--blu);font-weight:600}
+.new{background:var(--acc2);color:var(--acc);font-size:11px;padding:1px 6px;border-radius:6px;margin-left:6px}
+.warn{color:var(--amb);background:var(--amb2);border-radius:6px;padding:0 5px;font-size:12px}
+td select{border:1px solid var(--line);background:var(--card);border-radius:6px;padding:3px 4px;font-size:12px}
+td select.g1{background:var(--amb2);color:var(--amb)}td select.g2{background:var(--blu2);color:var(--blu)}td select.g3{background:var(--grn2);color:var(--grn)}
+.cm{width:100%;min-width:220px;border:1px solid transparent;background:transparent;border-radius:6px;padding:4px 6px;resize:vertical;min-height:30px}
+.cm:hover{border-color:var(--line)}.cm:focus{outline:2px solid var(--acc);background:var(--card)}
+.x{background:none;border:0;cursor:pointer;color:var(--mut);font-size:16px}.x:hover{color:var(--red)}
+.pg{display:flex;gap:6px;align-items:center}
+.empty{padding:40px;text-align:center;color:var(--mut)}
+.mini{display:block;height:6px;border-radius:3px;background:var(--red);opacity:.75;margin-top:4px}
+tr.clk{cursor:pointer}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);padding:0;width:min(560px,94vw);box-shadow:0 20px 50px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.df{padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.df h2{grid-column:1/-1;margin:0 0 4px;font-size:18px}
+.df label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--mut)}
+.df .full{grid-column:1/-1}
+.df .act{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+@media (max-width:480px){.df{grid-template-columns:1fr}}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}
+.toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div><h1>Fallas de almacén</h1><div class="sub">Recopilatorio de 1Bit · <span id="rango"></span> <b id="mode"></b></div></div>
+  <div class="btns">
+    <button class="btn pri" id="bNew" hidden>+ Nueva falla</button>
+    <button class="btn" id="bImp" hidden>Importar Excel de 1Bit</button>
+    <button class="btn" id="bCopy">Copiar vista</button>
+    <button class="btn" id="bExp">Exportar JSON</button>
+    <button class="btn pri" id="bSave" hidden>Guardar en GitHub</button>
+    <button class="btn" id="bConn">Soy editor</button>
+    <input type="file" id="file" accept=".xls,.xlsx,.csv" hidden>
+  </div>
+</header>
+
+<section class="kpis" id="kpis"></section>
+
+<div class="tabs">
+  <button class="tab on" data-t="det">Detalle</button>
+  <button class="tab" data-t="suc">Por sucursal</button>
+</div>
+
+<section class="filters">
+  <input class="fld q" id="q" type="search" placeholder="Buscar producto, código, folio, lote, pedido, comentario…">
+  <select class="fld" id="fSuc"></select>
+  <select class="fld" id="fItem"><option value="">Estado ítem: todos</option><option>Aprobado</option><option>Rechazado</option></select>
+  <select class="fld" id="fGes"><option value="">Gestión: todas</option><option value="0">Pendiente</option><option value="1">En gestión</option><option value="2">Resuelto</option></select>
+  <select class="fld" id="fCom"><option value="">Comentario: todos</option><option value="con">Con comentario</option><option value="sin">Sin comentario</option></select>
+  <select class="fld" id="fTipo"><option value="">Tipo: faltantes y sobrantes</option><option value="f">Solo faltantes</option><option value="s">Solo sobrantes</option></select>
+  <input class="fld" id="fD" type="date" title="Desde">
+  <input class="fld" id="fH" type="date" title="Hasta">
+  <button class="btn" id="bClr">Limpiar filtros</button>
+</section>
+
+<div id="vDet">
+  <div class="bar"><span id="cnt"></span><span class="pg"><button class="btn" id="pPrev">←</button><span id="pInfo"></span><button class="btn" id="pNext">→</button></span></div>
+  <div class="tw"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+</div>
+<div id="vSuc" hidden>
+  <div class="bar"><span>Haz clic en una sucursal para ver su detalle.</span></div>
+  <div class="tw"><table style="min-width:640px"><thead><tr><th>Sucursal</th><th class="n">Líneas</th><th class="n">Folios</th><th class="n">Rechazadas</th><th class="n">Faltante (−)</th><th class="n">Sobrante (+)</th></tr></thead><tbody id="sbody"></tbody></table></div>
+</div>
+</div>
+
+<dialog id="dlg"><form class="df" id="frm" method="dialog">
+  <h2>Nueva falla</h2>
+  <label>Fecha<input class="fld" name="fecha" type="date" required></label>
+  <label>Sucursal<select class="fld" name="suc" required></select></label>
+  <label>Folio<input class="fld" name="folio" placeholder="F002281"></label>
+  <label>Estado ítem<select class="fld" name="item"><option>Aprobado</option><option>Rechazado</option></select></label>
+  <label class="full">Producto<input class="fld" name="producto" required></label>
+  <label>Código<input class="fld" name="codigo" placeholder="COL0000"></label>
+  <label>Lote<input class="fld" name="lote"></label>
+  <label>Pedido<input class="fld" name="pedido"></label>
+  <label>Cartón<input class="fld" name="carton"></label>
+  <label>Cant. pedida<input class="fld" name="cped" type="number" min="0" value="0" required></label>
+  <label>Cant. física<input class="fld" name="cfis" type="number" min="0" value="0" required></label>
+  <label class="full">Comentario<textarea class="fld" name="nota" rows="2"></textarea></label>
+  <div class="act"><button class="btn" type="button" id="dCancel">Cancelar</button><button class="btn pri" type="submit">Agregar</button></div>
+</form></dialog>
+<dialog id="dgh"><form class="df" id="fgh" method="dialog"><h2>Conectar con GitHub</h2>
+  <label>Usuario<input class="fld" name="owner" required></label>
+  <label>Repositorio<input class="fld" name="repo" required></label>
+  <label>Rama<input class="fld" name="branch" value="main"></label>
+  <label class="full">Token (fine-grained, solo este repo, permiso Contents: Read and write)<input class="fld" name="token" type="password" required></label>
+  <div class="act"><button class="btn" type="button" id="ghOut">Desconectar</button><button class="btn" type="button" id="ghCancel">Cancelar</button><button class="btn pri" type="submit">Guardar</button></div>
+</form></dialog>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const FILE = 'fallas.json';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const pad = s => String(s).replace(/\D/g, '').padStart(4, '0');
+const fdate = iso => iso ? iso.split('-').reverse().join('/') : '';
+const GES = ['Pendiente', 'En gestión', 'Resuelto'];
+
+let SUCN = {}, D = {updated: '', sucursales: {}, fallas: [], notas: {}, gestion: {}};
+let BASEU = '', dirty = false, GHC = null;
+try { GHC = JSON.parse(localStorage.getItem('fallas_gh') || 'null'); } catch (e) {}
+let EDIT = !!(GHC && GHC.token);
+const DKEY = 'fallas_draft';
+function save() {
+  dirty = true;
+  try { localStorage.setItem(DKEY, JSON.stringify({base: BASEU, data: D})); } catch (e) {}
+  bar();
+}
+const rows = () => D.fallas;
+const sucName = c => SUCN[+c] ? c + ' · ' + SUCN[+c] : c;
+const dupKey = r => [r.folio, r.carton, r.codigo, r.lote, r.cped].join('|');
+
+let V = {tab: 'det', page: 0, size: 50, sk: 'fecha', sd: -1};
+const F = () => ({q: norm($('#q').value), suc: $('#fSuc').value, item: $('#fItem').value, ges: $('#fGes').value, com: $('#fCom').value, tipo: $('#fTipo').value, d: $('#fD').value, h: $('#fH').value});
+
+function filtered() {
+  const f = F();
+  let out = rows().filter(r => {
+    if (f.suc && r.suc !== f.suc) return false;
+    if (f.item && r.item !== f.item) return false;
+    if (f.ges && String(D.gestion[r.id] || 0) !== f.ges) return false;
+    const nota = D.notas[r.id] || '';
+    if (f.com === 'con' && !nota.trim()) return false;
+    if (f.com === 'sin' && nota.trim()) return false;
+    if (f.tipo === 'f' && !(r.falt > 0)) return false;
+    if (f.tipo === 's' && !(r.sobr > 0)) return false;
+    if (f.d && r.fecha < f.d) return false;
+    if (f.h && r.fecha > f.h) return false;
+    if (f.q && !norm([r.folio, r.producto, r.codigo, r.lote, r.pedido, r.carton, r.suc, SUCN[+r.suc], nota].join(' ')).includes(f.q)) return false;
+    return true;
+  });
+  const k = V.sk, d = V.sd;
+  out.sort((a, b) => {
+    let x = k === 'nota' ? (D.notas[a.id] || '') : a[k], y = k === 'nota' ? (D.notas[b.id] || '') : b[k];
+    if (typeof x === 'number' && typeof y === 'number') return (x - y) * d;
+    return String(x ?? '').localeCompare(String(y ?? ''), 'es', {numeric: true}) * d;
+  });
+  return out;
+}
+
+function kpis(list) {
+  const sum = k => list.reduce((a, r) => a + (r[k] || 0), 0);
+  const folios = new Set(list.map(r => r.folio)).size, sucs = new Set(list.map(r => r.suc)).size;
+  const rech = list.filter(r => r.item === 'Rechazado').length;
+  const pend = list.filter(r => !D.gestion[r.id]).length;
+  const K = [['', list.length, 'Líneas'], ['', folios, 'Folios'], ['', sucs, 'Sucursales'], ['r', sum('falt'), 'Unidades faltantes'], ['g', sum('sobr'), 'Unidades sobrantes'], ['', rech, 'Líneas rechazadas'], ['', pend, 'Pendientes de gestión']];
+  $('#kpis').innerHTML = K.map(([c, v, l]) => `<div class="kpi ${c}"><b>${v.toLocaleString('es-CO')}</b><span>${l}</span></div>`).join('');
+}
+
+const COLS = [['fecha', 'Fecha'], ['folio', 'Folio'], ['suc', 'Sucursal'], ['producto', 'Producto'], ['pedido', 'Pedido / Cartón'], ['lote', 'Lote'], ['cped', 'Pedida', 1], ['cfis', 'Física', 1], ['falt', 'Falt. (−)', 1], ['sobr', 'Sobr. (+)', 1], ['item', 'Ítem'], ['ges', 'Gestión'], ['nota', 'Comentario']];
+function head() {
+  $('#thead').innerHTML = '<tr>' + COLS.map(([k, l, n]) => `<th class="${n ? 'n' : ''}" data-k="${k}">${l}${V.sk === k ? (V.sd > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('') + '<th></th></tr>';
+}
+
+function render() {
+  const list = filtered();
+  kpis(list);
+  const all = rows(); const ds = all.map(r => r.fecha).filter(Boolean).sort();
+  $('#rango').textContent = all.length + ' líneas · ' + fdate(ds[0]) + ' → ' + fdate(ds[ds.length - 1]);
+  if (V.tab === 'det') {
+    const pages = Math.max(1, Math.ceil(list.length / V.size));
+    V.page = Math.min(V.page, pages - 1);
+    const slice = list.slice(V.page * V.size, (V.page + 1) * V.size);
+    $('#cnt').textContent = list.length.toLocaleString('es-CO') + ' de ' + all.length.toLocaleString('es-CO') + ' líneas';
+    $('#pInfo').textContent = 'Pág. ' + (V.page + 1) + ' / ' + pages;
+    $('#pPrev').disabled = V.page === 0; $('#pNext').disabled = V.page >= pages - 1;
+    head();
+    $('#tbody').innerHTML = slice.length ? slice.map(r => {
+      const g = D.gestion[r.id] || 0, yr = r.fecha && !r.fecha.startsWith('2026');
+      return `<tr data-id="${r.id}">
+<td>${fdate(r.fecha)}${yr ? ' <span class="warn" title="Año distinto a 2026: revisar fecha en 1Bit">⚠ año</span>' : ''}</td>
+<td>${esc(r.folio)}</td>
+<td title="${esc(sucName(r.suc))}">${esc(sucName(r.suc))}</td>
+<td><div class="pn">${esc(r.producto)}</div><div class="cd">${esc(r.codigo)}</div></td>
+<td>${esc(r.pedido)}<div class="cd">${esc(r.carton)}</div></td>
+<td>${esc(r.lote)}</td>
+<td class="n">${r.cped}</td><td class="n">${r.cfis}</td>
+<td class="n ${r.falt ? 'neg' : ''}">${r.falt || ''}</td><td class="n ${r.sobr ? 'pos' : ''}">${r.sobr || ''}</td>
+<td><span class="pill ${r.item === 'Rechazado' ? 're' : 'ap'}">${esc(r.item)}</span></td>
+<td><select class="g${g}" data-g="${r.id}" ${EDIT ? '' : 'disabled'}>${GES.map((n, i) => `<option value="${i}" ${i === g ? 'selected' : ''}>${n}</option>`).join('')}</select></td>
+<td><textarea class="cm" rows="1" data-n="${r.id}" placeholder="${EDIT ? 'Agregar comentario…' : ''}" ${EDIT ? '' : 'readonly'}>${esc(D.notas[r.id] || '')}</textarea></td>
+<td>${EDIT && r.id[0] === 'n' ? `<button class="x" data-del="${r.id}" title="Eliminar">✕</button>` : ''}</td></tr>`;
+    }).join('') : '<tr><td colspan="14" class="empty">No hay líneas con esos filtros.</td></tr>';
+  } else {
+    const m = {};
+    list.forEach(r => { const o = m[r.suc] ||= {suc: r.suc, n: 0, f: new Set(), rech: 0, falt: 0, sobr: 0}; o.n++; o.f.add(r.folio); if (r.item === 'Rechazado') o.rech++; o.falt += r.falt || 0; o.sobr += r.sobr || 0; });
+    const arr = Object.values(m).sort((a, b) => b.falt - a.falt), mx = Math.max(1, ...arr.map(a => a.falt));
+    $('#sbody').innerHTML = arr.map(a => `<tr class="clk" data-s="${a.suc}"><td>${esc(sucName(a.suc))}</td><td class="n">${a.n}</td><td class="n">${a.f.size}</td><td class="n">${a.rech}</td><td class="n neg" style="min-width:150px">${a.falt}<span class="mini" style="width:${Math.round(a.falt / mx * 100)}%"></span></td><td class="n pos">${a.sobr}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Sin datos.</td></tr>';
+  }
+}
+
+function fillSuc() {
+  const present = [...new Set(rows().map(r => r.suc))].sort();
+  const cur = $('#fSuc').value;
+  $('#fSuc').innerHTML = '<option value="">Sucursal: todas</option>' + present.map(s => `<option value="${s}">${esc(sucName(s))}</option>`).join('');
+  $('#fSuc').value = cur;
+}
+function fillForm() {
+  const codes = Object.keys(SUCN).map(Number).sort((a, b) => a - b);
+  $('#frm [name=suc]').innerHTML = codes.map(c => `<option value="${pad(c)}">${pad(c)} · ${esc(SUCN[c])}</option>`).join('');
+}
+
+function toast(t) { const e = $('#toast'); e.textContent = t; e.classList.add('on'); setTimeout(() => e.classList.remove('on'), 2600); }
+function refresh(resetPage) { if (resetPage) V.page = 0; render(); }
+
+// eventos
+['q', 'fSuc', 'fItem', 'fGes', 'fCom', 'fTipo', 'fD', 'fH'].forEach(id => $('#' + id).addEventListener(id === 'q' ? 'input' : 'change', () => refresh(true)));
+$('#bClr').onclick = () => { ['q', 'fSuc', 'fItem', 'fGes', 'fCom', 'fTipo', 'fD', 'fH'].forEach(id => $('#' + id).value = ''); refresh(true); };
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
+  V.tab = b.dataset.t; document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b));
+  $('#vDet').hidden = V.tab !== 'det'; $('#vSuc').hidden = V.tab !== 'suc'; render();
+});
+$('#pPrev').onclick = () => { V.page--; render(); };
+$('#pNext').onclick = () => { V.page++; render(); };
+$('#thead').onclick = e => { const th = e.target.closest('th[data-k]'); if (!th) return; const k = th.dataset.k; if (k === 'ges') return; V.sd = V.sk === k ? -V.sd : 1; V.sk = k; render(); };
+$('#sbody').onclick = e => { const tr = e.target.closest('tr[data-s]'); if (!tr) return; $('#fSuc').value = tr.dataset.s; document.querySelector('.tab[data-t=det]').click(); };
+$('#tbody').addEventListener('change', e => {
+  const g = e.target.dataset.g;
+  if (g) { D.gestion[g] = +e.target.value; save(); e.target.className = 'g' + e.target.value; kpis(filtered()); }
+  const n = e.target.dataset.n;
+  if (n) { D.notas[n] = e.target.value; save(); }
+});
+$('#tbody').addEventListener('click', e => {
+  const d = e.target.dataset.del;
+  if (d && confirm('¿Eliminar esta falla agregada?')) { D.fallas = D.fallas.filter(r => r.id !== d); delete D.notas[d]; delete D.gestion[d]; save(); fillSuc(); refresh(); }
+});
+
+// nueva falla
+$('#bNew').onclick = () => { $('#frm').reset(); $('#frm [name=fecha]').value = new Date().toISOString().slice(0, 10); $('#dlg').showModal(); };
+$('#dCancel').onclick = () => $('#dlg').close();
+$('#frm').addEventListener('submit', () => {
+  const f = Object.fromEntries(new FormData($('#frm')));
+  const cped = +f.cped || 0, cfis = +f.cfis || 0;
+  const r = {id: 'n' + Date.now(), folio: f.folio.trim() || 'Manual', fecha: f.fecha, suc: f.suc, item: f.item, pedido: f.pedido.trim(), carton: f.carton.trim(), codigo: f.codigo.trim(), producto: f.producto.trim().toUpperCase(), lote: f.lote.trim(), cped, cfis, falt: Math.max(0, cped - cfis), sobr: Math.max(0, cfis - cped)};
+  D.fallas.push(r); if (f.nota.trim()) D.notas[r.id] = f.nota.trim(); save(); fillSuc(); V.sk = 'fecha'; V.sd = -1; refresh(true); toast('Falla agregada');
+});
+
+// importar excel de 1Bit
+$('#bImp').onclick = () => $('#file').click();
+const pdate = s => { const m = String(s || '').match(/^(\d{2})[.\/-](\d{2})[.\/-](\d{4})$/); return m ? `${m[3]}-${m[2]}-${m[1]}` : ''; };
+$('#file').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    if (typeof XLSX === 'undefined') throw new Error('lib');
+    const wb = XLSX.read(await f.arrayBuffer(), {type: 'array'});
+    const ws = wb.Sheets['Tabla1'] || wb.Sheets[wb.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(ws, {defval: '', raw: false});
+    const seen = new Set(rows().map(dupKey)); let add = 0, dup = 0;
+    data.forEach(o => {
+      if (!o['FOLIO'] || String(o['FOLIO']).toUpperCase() === 'TOTAL') return;
+      const n = k => +String(o[k] || 0).replace(/[^\d.-]/g, '') || 0;
+      const r = {id: 'n' + Date.now() + Math.random().toString(36).slice(2, 6), folio: String(o['FOLIO']).trim(), fecha: pdate(o['FECHA']), suc: pad(o['SUCURSAL']), item: String(o['ESTADO/ITEM'] || 'Aprobado').trim(), pedido: String(o['PEDIDO'] || '').trim(), carton: String(o['CARTON'] || '').trim(), codigo: String(o['CODIGO'] || '').trim(), producto: String(o['PRODUCTO'] || '').trim(), lote: String(o['LOTE'] || '').trim(), cped: n('CANT.PEDIDO'), cfis: n('CANT.FISICA'), falt: n('DIF(-)'), sobr: n('DIF(+)')};
+      const k = dupKey(r); if (seen.has(k)) { dup++; return; } seen.add(k); D.fallas.push(r); add++;
+    });
+    save(); fillSuc(); V.sk = 'fecha'; V.sd = -1; refresh(true);
+    toast(add + ' líneas nuevas · ' + dup + ' ya existían');
+  } catch (err) { toast('No pude leer ese archivo. Prueba con el .xls de Detalles-Fallas.'); }
+  e.target.value = '';
+};
+
+// copiar vista (TSV para pegar en Excel)
+$('#bCopy').onclick = async () => {
+  const L = filtered();
+  const tsv = ['Fecha\tFolio\tSucursal\tCódigo\tProducto\tPedido\tCartón\tLote\tPedida\tFísica\tFaltante\tSobrante\tÍtem\tGestión\tComentario']
+    .concat(L.map(r => [fdate(r.fecha), r.folio, sucName(r.suc), r.codigo, r.producto, r.pedido, r.carton, r.lote, r.cped, r.cfis, r.falt, r.sobr, r.item, GES[D.gestion[r.id] || 0], (D.notas[r.id] || '').replace(/\s+/g, ' ')].join('\t'))).join('\n');
+  try { await navigator.clipboard.writeText(tsv); toast(L.length + ' líneas copiadas. Pégalas en Excel.'); }
+  catch (e) { const t = document.createElement('textarea'); t.value = tsv; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); toast(L.length + ' líneas copiadas.'); } catch (x) { toast('Tu navegador bloqueó el copiado.'); } t.remove(); }
+};
+
+
+const ser = () => '{\n"updated":' + JSON.stringify(D.updated) + ',\n"sucursales":' + JSON.stringify(D.sucursales) + ',\n"fallas":[\n' + D.fallas.map(r => JSON.stringify(r)).join(',\n') + '\n],\n"notas":' + JSON.stringify(D.notas) + ',\n"gestion":' + JSON.stringify(D.gestion) + '\n}\n';
+const b64 = s => btoa(unescape(encodeURIComponent(s)));
+const unb64 = s => decodeURIComponent(escape(atob(s.replace(/\s/g, ''))));
+const apiUrl = c => `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${FILE}`;
+const hdr = (c, raw) => ({Authorization: 'Bearer ' + c.token, Accept: raw ? 'application/vnd.github.raw+json' : 'application/vnd.github+json'});
+
+function bar() {
+  $('#mode').textContent = EDIT ? (dirty ? '· Cambios sin guardar' : '· Modo editor') : '· Modo lectura';
+  $('#bSave').hidden = !EDIT; $('#bNew').hidden = !EDIT; $('#bImp').hidden = !EDIT;
+  $('#bSave').disabled = !dirty;
+  $('#bConn').textContent = EDIT ? 'Cuenta GitHub' : 'Soy editor';
+}
+
+async function load() {
+  let txt = null;
+  if (EDIT) { try { const r = await fetch(apiUrl(GHC) + '?ref=' + encodeURIComponent(GHC.branch || 'main'), {headers: hdr(GHC, true), cache: 'no-store'}); if (r.ok) txt = await r.text(); } catch (e) {} }
+  if (txt === null) { try { const r = await fetch(FILE + '?t=' + Date.now(), {cache: 'no-store'}); if (r.ok) txt = await r.text(); } catch (e) {} }
+  if (txt === null) { $('#tbody').innerHTML = '<tr><td colspan="14" class="empty">No pude cargar fallas.json. Ábrelo desde GitHub Pages, o localmente con un servidor (python -m http.server).</td></tr>'; return; }
+  D = Object.assign(D, JSON.parse(txt)); SUCN = D.sucursales || {}; BASEU = D.updated;
+  if (EDIT) { try { const d = JSON.parse(localStorage.getItem(DKEY) || 'null'); if (d && d.base === BASEU) { D = d.data; dirty = true; toast('Recuperé cambios sin guardar'); } } catch (e) {} }
+  fillSuc(); fillForm(); bar(); render();
+}
+
+$('#bConn').onclick = () => {
+  const m = location.hostname.match(/^(.+)\.github\.io$/), repo = location.pathname.split('/')[1];
+  const c = GHC || {owner: m ? m[1] : '', repo: repo && !repo.includes('.') ? repo : '', branch: 'main', token: ''};
+  const f = $('#fgh'); f.owner.value = c.owner; f.repo.value = c.repo; f.branch.value = c.branch || 'main'; f.token.value = c.token || '';
+  $('#dgh').showModal();
+};
+$('#ghCancel').onclick = () => $('#dgh').close();
+$('#ghOut').onclick = () => { try { localStorage.removeItem('fallas_gh'); } catch (e) {} location.reload(); };
+$('#fgh').addEventListener('submit', () => {
+  const f = $('#fgh');
+  GHC = {owner: f.owner.value.trim(), repo: f.repo.value.trim(), branch: f.branch.value.trim() || 'main', token: f.token.value.trim()};
+  try { localStorage.setItem('fallas_gh', JSON.stringify(GHC)); } catch (e) {}
+  location.reload();
+});
+
+$('#bSave').onclick = async () => {
+  const c = GHC, u = apiUrl(c) + '?ref=' + encodeURIComponent(c.branch || 'main'), btn = $('#bSave');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  try {
+    let sha; const cur = await fetch(u, {headers: hdr(c), cache: 'no-store'});
+    if (cur.ok) {
+      const j = await cur.json(); sha = j.sha; let ru = '';
+      try { ru = JSON.parse(unb64(j.content)).updated; } catch (e) {}
+      if (ru && ru !== BASEU && !confirm('Alguien más guardó cambios después de que abriste la página. ¿Sobrescribir de todas formas?')) return;
+    } else if (cur.status !== 404) throw new Error(cur.status);
+    const prev = D.updated; D.updated = new Date().toISOString();
+    const r = await fetch(apiUrl(c), {method: 'PUT', headers: hdr(c), body: JSON.stringify({message: 'Actualiza fallas ' + D.updated.slice(0, 10), content: b64(ser()), branch: c.branch || 'main', sha})});
+    if (!r.ok) { D.updated = prev; throw new Error(r.status); }
+    BASEU = D.updated; dirty = false; try { localStorage.removeItem(DKEY); } catch (e) {}
+    toast('Guardado en GitHub. Tu jefe lo verá en 1–2 minutos.');
+  } catch (e) { toast('No se pudo guardar (' + e.message + '). Revisa el token y sus permisos.'); }
+  finally { btn.textContent = 'Guardar en GitHub'; bar(); }
+};
+
+$('#bExp').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ser()], {type: 'application/json'})); a.download = 'fallas.json'; a.click(); };
+addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+bar(); load();
+</script>
+</body>
+</html>
